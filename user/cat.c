@@ -18,7 +18,7 @@ printHelp (void){
 	printf("  -n        number all lines\n");
 	printf("  -b        number non-empty lines\n");
 	printf("  -e        display non-printing characters (see the -v option), and display a dollar sign (‘$’) at the end of each line\n");
-	printf("  -t        display non-printing characters (see the -v option), and display tab characters as ‘^I’.");
+	printf("  -t        display non-printing characters (see the -v option), and display tab characters as ‘^I’.\n");
 	printf("  -s        squeeze multiple blank lines\n");
 	printf("  -v        show non-printing characters visibly\n");
 	printf("  --help    display this help\n");
@@ -32,32 +32,35 @@ cat(int fd)
   int line_num = 1; //tracks line #s
   int at_line_start = 1; //tracks whether next printed char is at the start of a newline
   int last_blank = 0; //boolean that checks for newline chars for -s
-  
+  int line_blank = 1; //used for  -s
 
   while((n = read(fd, buf, sizeof(buf))) > 0) {
   	for (int i = 0; i < n; i++){
   		char c = buf[i];
 
+  		//squeezing blank lines
+  		if(c == '\n'){	
+  			if (last_blank && flag_s && line_blank){
+  				line_blank = 1;
+  				continue;
+  			}
+  	    	last_blank = line_blank; //mark this line for being blank
+        	line_blank = 1; //reset for nexr line
+        	at_line_start = 1;
+    	} else if (c != ' ' && c != '\t') {//current line is not blank 
+        	line_blank = 0; 
+   		 }
+
+
   		//line numbering 
   		if (at_line_start){
   			if (flag_n || (flag_b && c != '\n')){
-  				printf("%6d\t", line_num);
+  				printf("%d\t", line_num);
   				line_num ++;
   			}
   			//no longer at the start of the line
 			at_line_start = 0;	
   		}
-
-  		//squeezing blank lines
-  		if(flag_s && c == '\n'){
-  			if (last_blank){
-  				continue;
-  			}
-  			last_blank = 1;
-  		} else {
-  			last_blank = 0;
-  		}
-
 
   		//show tabs
   		if(flag_t && c == '\t'){
@@ -105,15 +108,20 @@ main(int argc, char *argv[])
     cat(0);
     exit(0);
   }
-
+  
+//parsing for flags	
   for(i = 1; i < argc; i++){
-  	//printing help usage
-  	if (argv[i][0] == '-'){
-  		if(strcmp(argv[i],"--help") == 0){
-  			printHelp();
-  			exit(0);
-  		}
+  	//if not a flag skip
+  	if (argv[i][0] != '-'){
+  		break;
   	}
+
+  	//printing help usage
+  	if(strcmp(argv[i],"--help") == 0){
+  		printHelp();
+  		exit(0);
+  	}
+  
 
   	char *option = argv[i] + 1;
 	//adding option flags
@@ -144,6 +152,10 @@ main(int argc, char *argv[])
   			case 'v':
   				flag_v = 1;
   				break;
+
+  			default:
+  			    fprintf(2, "unknown option -%c\n", *option);
+  			    exit(1);
   		}
 		option++;
   	} 	

@@ -49,7 +49,7 @@ cat(int fd)
   		}
 
   		//squeezing blank lines
-  		if(flag_s && c == '\t'){
+  		if(flag_s && c == '\n'){
   			if (last_blank){
   				continue;
   			}
@@ -67,7 +67,7 @@ cat(int fd)
 
   		//showing nonprint
   		if(flag_v){
-  			if ((c < 32 && c != '\t' && c!= '\t') || (c == 127)){ //has to be a control char or del
+  			if ((c < 32 && c != '\n' && c!= '\t') || (c == 127)){ //has to be a control char or del
   				char output[2];
 				output[0] = '^';
 				output[1] = (c == 127) ? '?' : c + 64;
@@ -109,7 +109,7 @@ main(int argc, char *argv[])
   for(i = 1; i < argc; i++){
   	//printing help usage
   	if (argv[i][0] == '-'){
-  		if(strcmp(argv[i],"--help")){
+  		if(strcmp(argv[i],"--help") == 0){
   			printHelp();
   			exit(0);
   		}
@@ -134,7 +134,7 @@ main(int argc, char *argv[])
 
   			case 't':
   				flag_v = 1;
-  				flag_e = 1;
+  				flag_t = 1;
   				break;
 
   			case 's':
@@ -144,10 +144,6 @@ main(int argc, char *argv[])
   			case 'v':
   				flag_v = 1;
   				break;
-
-  			default:
-  				printf("unknown option -%c", *option);
-  				exit(0);
   		}
 		option++;
   	} 	
@@ -155,7 +151,7 @@ main(int argc, char *argv[])
 
   //run cat on files
   int files = 0;
-  for(int i  = 0; i < argc; i++){
+  for(int i  = 1; i < argc; i++){
   	//skipping flags since they have already been dealt with 
   	if (argv[i][0] == '-'){
   		continue;
@@ -168,6 +164,10 @@ main(int argc, char *argv[])
   	}
   	cat(fd);
   	close(fd);
+  }
+
+  if (files == 0) {
+      cat(0); // read from stdin
   }
   
   exit(0);

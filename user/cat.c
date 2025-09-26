@@ -38,6 +38,15 @@ cat(int fd)
   	for (int i = 0; i < n; i++){
   		char c = buf[i];
 
+		// line numbering 
+  		if (at_line_start){
+  		  	if (flag_n|| (flag_b && c != '\n')){
+  		  		printf("%d\t", line_num);
+  		  		line_num ++;
+  		  		at_line_start = 0;
+  		  	}	
+  		}
+
   		//squeezing blank lines
   		if(c == '\n'){	
   			if (last_blank && flag_s && line_blank){
@@ -50,17 +59,7 @@ cat(int fd)
     	} else if (c != ' ' && c != '\t') {//current line is not blank 
         	line_blank = 0; 
    		 }
-
-
-  		//line numbering 
-  		if (at_line_start){
-  			if (flag_n || (flag_b && c != '\n')){
-  				printf("%d\t", line_num);
-  				line_num ++;
-  			}
-  			//no longer at the start of the line
-			at_line_start = 0;	
-  		}
+  		
 
   		//show tabs
   		if(flag_t && c == '\t'){
